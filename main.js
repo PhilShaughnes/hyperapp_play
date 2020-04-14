@@ -1,21 +1,56 @@
 import { h, app } from "https://unpkg.com/hyperapp"
+import { onAnimationFrame } from "https://unpkg.com/@hyperapp/events@0.0.3"
+
+const DURATION = 15000 //ms = 15s
 
 const Start = state =>
   state.mode === "stopped"
-  ? { ...state, mode: "running" }
+  ? {
+    mode: "running",
+    startedTime: event.timeStamp,
+    remainingTime: DURATION,
+    duration: DURATION
+  }
   : state
+
 const Pause = state =>
   state.mode === "running"
-  ? { ...state, mode: "paused" }
+  ? {
+    ...state,
+    mode: "paused"
+  }
   : state
+
 const Continue = state =>
   state.mode === "paused"
-  ? { ...state, mode: "running" }
+  ? {
+    ...state,
+    mode: "running",
+    startedTime: event.timeStamp,
+    duration: state.remainingTime
+  }
   : state
-const Cancel = state => ({ ...state, mode: "stopped" })
+
+const Cancel = state => ({
+  ...state,
+  mode: "stopped"
+})
+
+const UpdateTime = (state, timestamp) =>
+  state.mode !== "running"
+    ? state
+    : state.remainingTime < 0
+      ? Cancel(state)
+      : {
+        ...state,
+        remainingTime: state.duration + state.startedTime - timestamp
+      }
 
 app({
   init: { mode: "stopped" },
+  subscriptions: state => [
+    state.mode === "running" && onAnimationFrame(UpdateTime)
+  ],
   view: state => h("div", {}, [
     h("p", {}, [
       state.mode == "stopped"
@@ -34,6 +69,9 @@ app({
       )
     ]),
     h("p", {}, [`Current state: ${state.mode}`]),
+
+    state.remainingTime
+    && h("p", {}, ["Remaining: ", state.remainingTime, " ms"])
   ]),
   node: document.getElementById("app")
 })
