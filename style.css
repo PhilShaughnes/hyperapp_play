@@ -1,0 +1,37 @@
+.gauge {
+  position: relative;
+  padding: 0;
+  border: 1px #555 solid;
+  background-color: #aaa;  
+  width: 200px;
+  height: 40px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.gauge-meter {
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 62%;
+    background-color: hotpink;
+}
+
+.gauge-text {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  line-height: 40px;
+  font-size: 25px;
+  text-align: center;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  color: #fff;
+  text-shadow: #000 0px -1px 1px;
+  z-index: 1000;
+}

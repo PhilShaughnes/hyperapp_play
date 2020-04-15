@@ -1,5 +1,5 @@
 import { h, app } from "https://unpkg.com/hyperapp"
-import { onAnimationFrame } from "https://unpkg.com/@hyperapp/events@0.0.3"
+// import { onAnimationFrame } from "https://unpkg.com/@hyperapp/events@0.0.3"
 
 const DURATION = 15000 //ms = 15s
 
@@ -46,6 +46,17 @@ const UpdateTime = (state, timestamp) =>
         remainingTime: state.duration + state.startedTime - timestamp
       }
 
+const onAnimationFrame = (() => {
+    const subFn = (dispatch, options) => {
+        let id = requestAnimationFrame(function frame(timestamp) {
+            id = requestAnimationFrame(frame)
+            dispatch(options.action, timestamp)
+        }) 
+        return () => cancelAnimationFrame(id)
+    }
+    return action => [subFn, { action }]
+})()
+
 app({
   init: { mode: "stopped" },
   subscriptions: state => [
@@ -70,8 +81,22 @@ app({
     ]),
     h("p", {}, [`Current state: ${state.mode}`]),
 
-    state.remainingTime
-    && h("p", {}, ["Remaining: ", state.remainingTime, " ms"])
+    h("div", { class: "gauge" }, [
+      h("div", {
+        class: "gauge-meter",
+        style: {
+          width:
+            state.mode !== "stopped"
+              ? (100 * state.remainingTime) / DURATION + "%"
+              : "100%"
+        }
+      }),
+      state.mode !== "stopped" &&
+      h("p", { class: "gauge-text" }, [
+        Math.ceil(state.remainingTime / 1000),
+        " s"
+      ])
+    ])
   ]),
   node: document.getElementById("app")
 })
