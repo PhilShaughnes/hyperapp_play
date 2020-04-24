@@ -4,7 +4,7 @@ import { h, app } from "https://unpkg.com/hyperapp"
 
 const DURATION = 15000 //ms = 15s
 
-const Start = state =>
+const Start = (state, event) =>
   state.mode === "stopped"
   ? {
     mode: "running",
@@ -47,6 +47,27 @@ const UpdateTime = (state, timestamp) =>
         remainingTime: state.duration + state.startedTime - timestamp
       }
 
+const passStateTo = (action) => (state, {id, payload}) => (
+  {
+    ...state,
+    [id]: action(state[id], payload)
+  }
+)
+
+// const click = action => id => [passStateTo(action), payload => ({id, payload})]
+const click = action => {
+  var doAction = passStateTo(action)
+  return id => [doAction, payload => ({id, payload})]
+}
+
+const clickStart    = click(Start)
+const clickPause    = click(Pause)
+const clickContinue = click(Continue)
+const clickCancel   = click(Cancel)
+const updateTime    = passStateTo(UpdateTime)
+const doUpdate      = click(UpdateTime)
+
+
 const onAnimationFrame = (() => {
     const subFn = (dispatch, options) => {
         let id = requestAnimationFrame(function frame(timestamp) {
@@ -58,18 +79,18 @@ const onAnimationFrame = (() => {
     return action => [subFn, { action }]
 })()
 
-const Controls = state => h("p", {}, [
+const Controls = (state, id) => h("p", {}, [
   state.mode == "stopped"
-  ? h("button", { onclick: Start }, "START")
-  : h("button", { onclick: Cancel }, "CANCEL"),
+  ? h("button", { onclick: clickStart(id)}, "START")
+  : h("button", { onclick: clickCancel(id) }, "CANCEL"),
 
   state.mode === "paused"
-  ? h("button", { onclick: Continue }, "CONTINUE")
+  ? h("button", { onclick: clickContinue(id) }, "CONTINUE")
   : h(
     "button",
     {
       disabled: state.mode === "stopped",
-      onclick: Pause
+      onclick: clickPause(id)
     },
     "PAUSE"
   )
@@ -92,25 +113,29 @@ const Gauge = state => h("div", { class: "gauge" }, [
   ])
 ])
 
+const withId = id  => payload => ({id, payload})
+
 app({
   init: {
     timer1: { mode: "stopped" },
     timer2: { mode: "stopped" }
   },
   subscriptions: state => [
-    state.timer1.mode === "running" && onAnimationFrame(UpdateTime),
-    state.timer2.mode === "running" && onAnimationFrame(UpdateTime)
+    state.timer1.mode === "running"
+    // && onAnimationFrame([updateTime, withId("timer1")]),
+    && onAnimationFrame(doUpdate("timer1")),
+    state.timer2.mode === "running"
+    // && onAnimationFrame([updateTime, withId("timer2")])
+    && onAnimationFrame(doUpdate("timer2")),
   ],
   view: state => h("div", {}, [
-    // h("p", {}, [`Current state: ${state.timer1.mode}`]),
-    // h("p", {}, [`Current state: ${state.timer1.mode}`]),
     h("p", {}, `timer 1: ${state.timer1.mode}`),
-    Controls(state.timer1),
+    Controls(state.timer1, "timer1"),
     Gauge(state.timer1),
     h("hr"),
     h("p", {}, `timer 2: ${state.timer2.mode}`),
-    Controls(state.timer2),
-    Gauge(state.timer2)
+    Controls(state.timer2, "timer2"),
+    Gauge(state.timer2),
   ]),
   node: document.getElementById("app")
 })
