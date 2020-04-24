@@ -5,6 +5,10 @@ when I found [hyperapp](https://hyperapp.dev/) I was intrigued.
 This is just a small repo to get started experimenting, playing, and
 hopefully learning.
 
+## Timer
+
+The timer portion is mostly taken from going through [this tutorial](https://medium.com/hyperapp/a-walk-through-hyperapp-2-b1f642fca172).
+
 ## How I start
 
 When I'm working/playing around with something like this, I often use [devd](https://github.com/cortesi/devd) so I don't have to refresh the browser. As I explore the tooling, this may change, but for now I like it.
