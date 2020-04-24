@@ -47,25 +47,31 @@ const UpdateTime = (state, timestamp) =>
         remainingTime: state.duration + state.startedTime - timestamp
       }
 
-const passStateTo = (action) => (state, {id, payload}) => (
-  {
+
+const handleStateFor = (action) => (state, {id, payload}) => ( {
     ...state,
     [id]: action(state[id], payload)
-  }
-)
+  })
 
-// const click = action => id => [passStateTo(action), payload => ({id, payload})]
+/*
+ * this one is weird to me.
+ * if I don't move the call to handleStateFor to outside of the
+ * generated returned function, we get some weird state behavior.
+ *
+ * The two timers cannot be updated at the same time - we can start
+ * them both, but if timer1 is running, only timer1 shows the guage
+ * updated
+ */
 const click = action => {
-  var doAction = passStateTo(action)
-  return id => [doAction, payload => ({id, payload})]
+  var stateHandlingAction = handleStateFor(action)
+  return id => [stateHandlingAction, payload => ({id, payload})]
 }
 
-const clickStart    = click(Start)
-const clickPause    = click(Pause)
-const clickContinue = click(Continue)
-const clickCancel   = click(Cancel)
-const updateTime    = passStateTo(UpdateTime)
-const doUpdate      = click(UpdateTime)
+const clickStart        = click(Start)
+const clickPause        = click(Pause)
+const clickContinue     = click(Continue)
+const clickCancel       = click(Cancel)
+const doUpdateTime      = click(UpdateTime)
 
 
 const onAnimationFrame = (() => {
@@ -121,12 +127,8 @@ app({
     timer2: { mode: "stopped" }
   },
   subscriptions: state => [
-    state.timer1.mode === "running"
-    // && onAnimationFrame([updateTime, withId("timer1")]),
-    && onAnimationFrame(doUpdate("timer1")),
-    state.timer2.mode === "running"
-    // && onAnimationFrame([updateTime, withId("timer2")])
-    && onAnimationFrame(doUpdate("timer2")),
+    state.timer1.mode === "running" && onAnimationFrame(doUpdateTime("timer1")),
+    state.timer2.mode === "running" && onAnimationFrame(doUpdateTime("timer2")),
   ],
   view: state => h("div", {}, [
     h("p", {}, `timer 1: ${state.timer1.mode}`),
