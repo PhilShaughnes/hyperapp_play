@@ -1,5 +1,6 @@
 import { h, app } from "https://unpkg.com/hyperapp"
 // import { onAnimationFrame } from "https://unpkg.com/@hyperapp/events@0.0.3"
+/** @jsx h */
 
 const DURATION = 15000 //ms = 15s
 
@@ -92,19 +93,24 @@ const Gauge = state => h("div", { class: "gauge" }, [
 ])
 
 app({
-  init: { mode: "stopped" },
+  init: {
+    timer1: { mode: "stopped" },
+    timer2: { mode: "stopped" }
+  },
   subscriptions: state => [
-    state.mode === "running" && onAnimationFrame(UpdateTime)
+    state.timer1.mode === "running" && onAnimationFrame(UpdateTime),
+    state.timer2.mode === "running" && onAnimationFrame(UpdateTime)
   ],
   view: state => h("div", {}, [
-    h("p", {}, [`Current state: ${state.mode}`]),
-    h("p", {}, "timer 1: "),
-    Controls(state),
-    Gauge(state),
+    // h("p", {}, [`Current state: ${state.timer1.mode}`]),
+    // h("p", {}, [`Current state: ${state.timer1.mode}`]),
+    h("p", {}, `timer 1: ${state.timer1.mode}`),
+    Controls(state.timer1),
+    Gauge(state.timer1),
     h("hr"),
-    h("p", {}, "timer 2: "),
-    Controls(state),
-    Gauge(state)
+    h("p", {}, `timer 2: ${state.timer2.mode}`),
+    Controls(state.timer2),
+    Gauge(state.timer2)
   ]),
   node: document.getElementById("app")
 })
