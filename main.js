@@ -87,19 +87,19 @@ const onAnimationFrame = (() => {
 
 const Controls = (state, id) => h("p", {}, [
   state.mode == "stopped"
-  ? h("button", { onclick: clickStart(id)}, "START")
-  : h("button", { onclick: clickCancel(id) }, "CANCEL"),
+    ? h("button", { onclick: clickStart(id)}, "START")
+    : h("button", { onclick: clickCancel(id) }, "CANCEL"),
 
   state.mode === "paused"
-  ? h("button", { onclick: clickContinue(id) }, "CONTINUE")
-  : h(
-    "button",
-    {
-      disabled: state.mode === "stopped",
-      onclick: clickPause(id)
-    },
-    "PAUSE"
-  )
+    ? h("button", { onclick: clickContinue(id) }, "CONTINUE")
+    : h(
+      "button",
+      {
+        disabled: state.mode === "stopped",
+        onclick: clickPause(id)
+      },
+      "PAUSE"
+    )
 ])
 
 const Gauge = state => h("div", { class: "gauge" }, [
